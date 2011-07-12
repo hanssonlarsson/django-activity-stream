@@ -157,6 +157,31 @@ def do_if_user_is_following(parser, token):
         ).exists() 
     return BooleanNode(b, nodelist_true, nodelist_false)
 
+def do_if_is_following(parser, token):
+    """
+    same syntax as if/else/endif. if the first argument is following the second
+    argument the 'true' block is evaluted, otherwise the false o else block is
+    evaluated.
+    """
+    bits = token.contents.split()
+    if len(bits) != 3:
+        raise TemplateSyntaxError, "'if_user_is_following' statement requires two argument [model object], [model object]"
+    model_one_object_var = bits[1]
+    model_two_object_var = bits[2]
+    nodelist_true = parser.parse(('else', 'endif'))
+    token = parser.next_token()
+    if token.contents == 'else':
+        nodelist_false = parser.parse(('endif',))
+        parser.delete_first_token()
+    else:
+        nodelist_false = NodeList()
+    b = lambda context : Follow.objects.filter(
+        user=Variable(model_one_object_var).resolve(context),
+        object_id=Variable(model_two_object_var).resolve(context).pk,
+        content_type=ContentType.objects.get_for_model(Variable(model_two_object_var).resolve(context))
+        ).exists()
+    return BooleanNode(b, nodelist_true, nodelist_false)
+
 
 def do_render_follower_list(parser, token):
     """
@@ -212,5 +237,6 @@ register.tag('get_follower_count', do_get_follower_count)
 register.tag('get_follower_list', do_get_follower_list)
 register.tag('render_follower_list', do_render_follower_list)
 register.tag('if_user_is_following', do_if_user_is_following)
+register.tag('if_is_following', do_if_is_following)
 register.tag('url_to_follow', do_url_to_follow)
 register.tag('url_to_unfollow', do_url_to_unfollow)
