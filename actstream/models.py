@@ -163,7 +163,7 @@ def follow(user, actor, send_action=True):
     follow, created = Follow.objects.get_or_create(user=user, object_id=actor.pk,
         content_type=ContentType.objects.get_for_model(actor))
     if send_action:
-        action.send(user, verb=_('started following'), target=actor)
+        action.send(user, verb='following', target=actor)
     return follow
 
 def unfollow(user, actor, send_action=False):
@@ -183,7 +183,7 @@ def unfollow(user, actor, send_action=False):
     Follow.objects.filter(user=user, object_id=actor.pk,
         content_type=ContentType.objects.get_for_model(actor)).delete()
     if send_action:
-        action.send(user, verb=_('stopped following'), target=actor)
+        action.send(user, verb='unfollowing', target=actor)
     
 def actor_stream(actor):
     return Action.objects.stream_for_actor(actor)
